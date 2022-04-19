@@ -6,7 +6,7 @@ def run_program():
     print("Welcome to Pokemon Image Generator!")
     sleep(0.5)
     answer = None
-    while answer != '1' and answer != '2':
+    while answer != '2':
         print("Press 1 to generate a new Pokemon image. Press 2 to exit")
         answer = input()
         if answer == '1':
