@@ -5,6 +5,7 @@ from random import choice
 # Reference: https://www.sqlitetutorial.net/sqlite-python/insert/
 # '_flashcard.db'
 
+
 def create_card_manual():
     """Prompts User for Card Term and Definition Input"""
     user_term = input('Enter a flashcard term: ')
@@ -76,7 +77,8 @@ def grab_cards(db_name):
 
 def study_deck():
     flashcard_deck = grab_cards('_flashcard.db')
-    nums = [num for num in range(0, len(flashcard_deck))]
+    total_cards = len(flashcard_deck)
+    nums = [num for num in range(0, total_cards)]
     print(nums)
     while nums != []:
         index = choice(nums)
@@ -89,6 +91,10 @@ def study_deck():
 
         # Remove Index
         nums.remove(index)
+
+        # Update Status
+        print(f"{total_cards - len(nums)} / {total_cards} Cards Completed")
+
     print("Congratulations!")
 
 
