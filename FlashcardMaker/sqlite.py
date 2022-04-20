@@ -3,25 +3,27 @@ from flashcard import Card
 from random import choice
 
 # Reference: https://www.sqlitetutorial.net/sqlite-python/insert/
+# https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
 # '_flashcard.db'
 
 
-def create_card_manual():
-    """Prompts User for Card Term and Definition Input"""
-    user_term = input('Enter a flashcard term: ')
-    user_def = input('Enter a definition for the term: ')
-    if user_term is not None and user_def is not None:
-        NewCard = Card(user_term, user_def)
-        return NewCard
+def create_card_manual(user_term, user_def):
+    """Takes a user's term and definition entries and validates them. Creates Card instance if valid."""
+
+    new_card = None
+    if user_term == '' or user_def == '':
+        return new_card
     else:
-        print("Card Not Added.")
+        new_card = Card(user_term, user_def)
+        return new_card
 
 
-def add_card(new_card, db_name):
+def add_card(new_card):
     """Adds a new user-generated flashcard to the _flashcard.db database"""
+    added = True
 
     # Open database and create cursor
-    conn = sqlite3.connect(db_name)
+    conn = sqlite3.connect("_flashcard.db")
     c = conn.cursor()
 
     # Create cards table if it doesn't already exist
@@ -31,16 +33,22 @@ def add_card(new_card, db_name):
             card_def TEXT NOT NULL)
             """)
 
-    # Insert Row into flashcard table
-    c.execute(
-        "INSERT INTO cards (card_term, card_def) VALUES (?, ?)",
-        (new_card.get_term(), new_card.get_definition()))
-
+    # Check to make sure term isn't repeated
+    c.execute("SELECT card_term FROM cards WHERE card_term = ?",
+              (new_card.get_term(),))
+    result = c.fetchall()
+    if len(result) != 0:
+        added = False
+    else:
+        # Insert Row into flashcard table
+        c.execute(
+            "INSERT INTO cards (card_term, card_def) VALUES (?, ?)",
+            (new_card.get_term(), new_card.get_definition()))
+        conn.commit()
+        added = True
     # Commits the current transaction
-    conn.commit()
-    print("Your flashcard has been added!")
-
     conn.close()
+    return added
 
 
 def view_all_cards(db_name):
@@ -55,12 +63,32 @@ def view_all_cards(db_name):
     conn.close()
 
 
-def grab_cards(db_name):
+def check_deck_exists():
+    """
+    Checks to make sure the cards table exists.
+    """
+    exist = False
+
+    # Open database and create cursor
+    conn = sqlite3.connect('_flashcard.db')
+    c = conn.cursor()
+
+    # Check if table 'cards' exists
+    c.execute(
+        """SELECT count(name) FROM sqlite_master WHERE type='table' AND name='cards'""")
+
+    if c.fetchone()[0] == 1:
+        exist = True
+        conn.close()
+    return exist
+
+
+def grab_cards():
     """
     Converts current flashcard deck into a dictionary.
     """
     # Open database and create cursor
-    conn = sqlite3.connect(db_name)
+    conn = sqlite3.connect('_flashcard.db')
     c = conn.cursor()
 
     flashcard_deck = {}
@@ -120,5 +148,4 @@ if __name__ == "__main__":
     # add_card(newcard1, '_flashcard.db')
     # study_cards('_flashcard.db')
     # view_all_cards('_flashcard.db')
-    # delete_all_cards('_flashcard.db')
-    study_deck()
+    delete_all_cards('_flashcard.db')
