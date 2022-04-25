@@ -73,7 +73,22 @@ class CreateCardsPage(tk.Frame):
             pass
 
         generate_def_button = tk.Button(
-            self, text="Auto-Generate Definition", command=generate_def)
+            self, text="Auto-Generate Definition", command=generate_def, padx=1, pady=1)
+
+        generate_def_label = tk.Label(
+            self, text="")
+
+        def show_generate_def_label(event):
+            generate_def_label.config(
+                text="Import a term's definition from the internet. \n (Single-word terms only.)", fg="#00008B", font=("Arial", 10))
+            generate_def_label.grid(
+                row=1, column=1, sticky="e")
+
+        def hide_generate_def_label(event):
+            generate_def_label.config(text="")
+
+        generate_def_button.bind("<Enter>", show_generate_def_label)
+        generate_def_button.bind("<Leave>", hide_generate_def_label)
 
         def create_card_gui():
             term = term_entry.get()
