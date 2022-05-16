@@ -1,7 +1,6 @@
 import sqlite3
 from flashcard import Card
 from random import randint
-from textwrap import wrap
 
 # Reference: https://www.sqlitetutorial.net/sqlite-python/insert/
 # https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
@@ -102,11 +101,6 @@ def grab_cards():
     conn.close()
 
     return flashcard_deck
-
-
-# Wrap text for definitions (Referenced: https://stackoverflow.com/questions/51131812/wrap-text-inside-row-in-tkinter-treeview)
-def wrapping(string, length=10):
-    return '\n'.join(wrap(string, length))
 
 
 def generate_card(flashcard_deck):

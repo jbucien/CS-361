@@ -1,6 +1,5 @@
 from time import sleep
 
-
 def get_img_path():
     """
     """

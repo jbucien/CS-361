@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-
-from sqlite import *
-
+import sqlite_db
 
 # Reference for using classes to switch frames in Tkinter: https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
 
@@ -28,372 +26,469 @@ class HomePage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
 
-        # Declare Title Label and Create Cards Button
-        welcome_label = tk.Label(
+        # Initialize Welcome title
+        self.welcome_label = tk.Label(
             self, text="Welcome!", font=("Arial", 25), pady=10)
-        create_cards_button = tk.Button(self, text="Create Flashcards",
-                                        command=lambda: master.switch_frame(CreateCardsPage))
 
-        # Make sure user has created cards Before they study/view deck
-        def check_deck(page):
-            deck = check_deck_exists()
-            if deck is True:
-                master.switch_frame(page)
-            else:
-                messagebox.showinfo(
-                    title="Blank Deck", message="You have not added any flashcards to your deck.")
+        # Initialize main 3 buttons
+        self.create_cards_button = tk.Button(self, text="Create Flashcards",
+                                             command=lambda: master.switch_frame(CreateCardsPage))
 
-        study_cards_button = tk.Button(self, text="Study Flashcards",
-                                       command=lambda: check_deck(StudyCardsPage))
-        view_cards_button = tk.Button(
-            self, text="View Flashcards", command=lambda: check_deck(ViewCardsPage))
+        self.study_cards_button = tk.Button(self, text="Study Flashcards",
+                                            command=lambda: self.check_deck(master, StudyCardsPage))
+        self.view_cards_button = tk.Button(
+            self, text="View Flashcards", command=lambda: self.check_deck(master, ViewCardsPage))
 
-        # View
-        welcome_label.grid(column=0, row=0)
-        create_cards_button.grid(column=0, row=1, padx=10, pady=5)
-        study_cards_button.grid(column=0, row=2, padx=10, pady=5)
-        view_cards_button.grid(column=0, row=3, padx=10, pady=5)
+        # Initialize Layout of Grid
+        self.welcome_label.grid(column=0, row=0)
+        self.create_cards_button.grid(column=0, row=1, padx=10, pady=5)
+        self.study_cards_button.grid(column=0, row=2, padx=10, pady=5)
+        self.view_cards_button.grid(column=0, row=3, padx=10, pady=5)
+
+    def check_deck(self, master, page):
+        """
+        Checks that the user already has flashcards in their deck when they click to the StudyCardsPage or ViewCardsPage. If their deck is empty, tells user to first go to CreateCardsPage. Else, redirects to the page specified in the page parameter.
+        """
+        deck = sqlite_db.check_deck_exists()
+        if deck is True:
+            master.switch_frame(page)
+        else:
+            messagebox.showinfo(
+                title="Blank Deck", message="You have not added any flashcards to your deck.")
 
 
 class CreateCardsPage(tk.Frame):
     def __init__(self, master):
+        # Initialize frame
         tk.Frame.__init__(self, master)
 
-        create_cards_label = tk.Label(
+        # Initialize Create Cards Title Label
+        self.create_cards_label = tk.Label(
             self, text="Create Cards", font=("Arial", 25), pady=10)
 
-        term_label = tk.Label(self, text="Enter the Flashcard Term:")
-        term_entry = tk.Entry(self, width=40)
+        # Initialize Flashcard Term/Def Labels & Text Fields
+        self.term_label = tk.Label(self, text="Enter the Flashcard Term:")
+        self.term_entry = tk.Entry(self, width=40)
 
-        def_label = tk.Label(self, text="Enter the Flashcard Entry:")
-        def_text = tk.Text(self, height=20, width=60, bd=5,
-                           borderwidth=1, relief="raised", font=("Arial", 12))
+        self.def_label = tk.Label(self, text="Enter the Flashcard Definition:")
+        self.def_text = tk.Text(self, height=20, width=60, bd=5,
+                                borderwidth=1, relief="raised", font=("Arial", 12))
 
-        def generate_def():
-            pass
-
-        generate_def_button = tk.Button(
-            self, text="Auto-Generate Definition", command=generate_def, padx=1, pady=1)
-
-        generate_def_label = tk.Label(
+        # Initialize Auto-Generate Definition Button/Label
+        self.generate_def_button = tk.Button(
+            self, text="Auto-Generate Definition", command=self.generate_def, padx=1, pady=1)
+        self.generate_def_label = tk.Label(
             self, text="")
+        # When user hovers over generate_def_button, displays text telling user what button does.
+        self.generate_def_button.bind("<Enter>", self.show_generate_def_label)
+        self.generate_def_button.bind("<Leave>", self.hide_generate_def_label)
 
-        def show_generate_def_label(event):
-            generate_def_label.config(
-                text="Import a term's definition from the internet. \n (Single-word terms only.)", fg="#00008B", font=("Arial", 10))
-            generate_def_label.grid(
-                row=1, column=1, sticky="e")
+        # Initialize Submit and Return to Home buttons
+        self.submit_button = tk.Button(
+            self, text="Add Card", command=self.create_card_gui)
+        self.return_button = tk.Button(self, text="Home Page",
+                                       command=lambda: master.switch_frame(HomePage))
 
-        def hide_generate_def_label(event):
-            generate_def_label.config(text="")
+        # Initialize Grid Layout
+        self.create_cards_label.grid(
+            column=0, row=0, padx=10, pady=5, columnspan=2)
+        self.term_label.grid(column=0, row=1, pady=5, columnspan=2, sticky="W")
+        self.term_entry.grid(column=0, row=2, pady=5, columnspan=1, sticky="W")
+        self.generate_def_button.grid(column=1, row=2, pady=5, padx=3)
+        self.def_label.grid(column=0, row=3, pady=5, columnspan=2, sticky="W")
+        self.def_text.grid(column=0, row=4, pady=5, columnspan=2, sticky="W")
+        self.submit_button.grid(column=1, row=6, padx=5, pady=5,
+                                columnspan=1, sticky="w")
+        self.return_button.grid(column=0, row=7, padx=5, pady=5,
+                                columnspan=1)
 
-        generate_def_button.bind("<Enter>", show_generate_def_label)
-        generate_def_button.bind("<Leave>", hide_generate_def_label)
+    def generate_def(self):
+        """
+        Writes user's input term to watchMe.txt. Kyle's microservice reads the text file, saves the term, and scrapes the Oxford Learner Dictionary for that term's first definition. His service then writes the definition to the text file. generate_def() reads the definition and outputs the definition to the Flashcard Definition field.
+        Note: Kyle's microservice must be running in a separate process.
+        """
+        pass
 
-        def create_card_gui():
-            term = term_entry.get()
-            definition = def_text.get(1.0, "end")
-            if not term or not definition:
-                messagebox.showerror(
-                    title="Blank Card",
-                    message="Card could not be added. Term and Definition fields cannot be blank.")
+    def show_generate_def_label(self, event):
+        """
+        Displays text telling user what the Generate Definition button does whenever the user hovers over the button.
+        """
+        self.generate_def_label.config(
+            text="Import a term's definition from the internet. \n (Single-word terms only.)", fg="#00008B", font=("Arial", 10))
+        self.generate_def_label.grid(
+            row=1, column=1, sticky="e")
+
+    def hide_generate_def_label(self, event):
+        """
+        Hides the text telling the user what the Generate Definition button does once the user is no longer hovering over the button.
+        """
+        self.generate_def_label.config(text="")
+
+    def create_card_gui(self):
+        """
+        Reads user's input flashcard term and definition. Makes sure both fields are filled, else displays an error message. Also makes sure term is not a duplicate, else displays an error message. Adds valid term/definition to SQlite database. Displays text at bottom of window confirming card added successfully.
+        """
+        term = self.term_entry.get()
+        definition = self.def_text.get("1.0", "end - 1 chars")
+        if not term:
+            messagebox.showerror(
+                title="Blank Card",
+                message="Card could not be added. Term field cannot be blank.")
+        if not definition:
+            messagebox.showerror(
+                title="Blank Card",
+                message="Card could not be added. Definition field cannot be blank.")
+        else:
+            card = sqlite_db.create_card_manual(term, definition)
+            added = sqlite_db.add_card(card)
+            if added:
+                added_confirmation = tk.Label(
+                    self, text="Card Added", fg="#32CD32")
+                added_confirmation.grid(
+                    column=0, row=6, pady=5)
+                self.term_entry.delete(0, "end")
+                self.def_text.delete(1.0, "end")
+                added_confirmation.after(
+                    4000, lambda: added_confirmation.destroy())
             else:
-                card = create_card_manual(term, definition)
-                added = add_card(card)
-                if added:
-                    added_confirmation = tk.Label(
-                        self, text="Card Added", fg="#32CD32")
-                    added_confirmation.grid(
-                        column=0, row=5, pady=5, columnspan=2)
-                    term_entry.delete(0, "end")
-                    def_text.delete(1.0, "end")
-                    added_confirmation.after(
-                        4000, lambda: added_confirmation.destroy())
-                else:
-                    messagebox.showerror(
-                        message="Card could not be added. Term is already in the flashcard deck.")
-                    term_entry.delete(0, "end")
-                    def_text.delete(1.0, "end")
-
-        submit_button = tk.Button(
-            self, text="Add Card", command=create_card_gui)
-        return_button = tk.Button(self, text="Home Page",
-                                  command=lambda: master.switch_frame(HomePage))
-        create_cards_label.grid(column=0, row=0, padx=10, pady=5, columnspan=2)
-        term_label.grid(column=0, row=1, pady=5, columnspan=2, sticky="W")
-        term_entry.grid(column=0, row=2, pady=5, columnspan=1, sticky="W")
-        generate_def_button.grid(column=1, row=2, pady=5, padx=3)
-        def_label.grid(column=0, row=3, pady=5, columnspan=2, sticky="W")
-        def_text.grid(column=0, row=4, pady=5, columnspan=2, sticky="W")
-        submit_button.grid(column=1, row=6, padx=5, pady=5,
-                           columnspan=1, sticky="w")
-        return_button.grid(column=0, row=7, padx=5, pady=5,
-                           columnspan=1)
+                messagebox.showerror(
+                    message="Card could not be added. Term is already in the flashcard deck.")
+                self.term_entry.delete(0, "end")
+                self.def_text.delete(1.0, "end")
 
 
 class StudyCardsPage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
 
-        # Variables for Displaying Terms/Definitions:
-        def_variable = tk.StringVar(self)
-        term_variable = tk.StringVar(self)
-
-        # Connect to database and get flashcards as dictionary
-        cards_dict = grab_cards()
-        card_nums = set()
-
-        # Study Cards Title Label/Button
-        study_cards_label = tk.Label(
+        # Initialize Study Cards Title Label/Button
+        self.study_cards_label = tk.Label(
             self, text="Study Cards", font=("Arial", 25))
-        study_cards_label.grid(column=0, row=0, pady=5)
 
-        # Initialize Card Display Frame (not shown until user clicks "Start Studying!")
-        card_display = tk.LabelFrame(
+        # Connect to database and get flashcards as dictionary. Initialize empty set of already seen cards.
+        self.cards_dict = sqlite_db.grab_cards()
+        self.cards_seen = set()
+
+        # Initialize Variables for Displaying Terms/Definitions:
+        self.def_var = tk.StringVar(self)
+        self.term_var = tk.StringVar(self)
+
+        # Intialize Start Studying and Home Buttons
+        self.start_study_button = tk.Button(
+            self, text="Start Studying!", command=lambda: self.show_card_display(master))
+        # Bind Start Study Button to the user's click so the button disappears
+        self.start_study_button.bind(
+            "<ButtonRelease-1>", self.forget_study_button)
+        self.return_button = tk.Button(self, text="Home Page",
+                                       command=lambda: master.switch_frame(HomePage))
+
+        # Initialize Inner Card Display Frame (not shown until user clicks "Start Studying!")
+        self.card_display = tk.LabelFrame(
             self, text="Card Deck", padx=50, pady=50, height=300, width=400)
 
-        # Clear Inner Frame Function
-        def clear_inner_frame():
-            # reference https://www.youtube.com/watch?v=A6m7TmjuNzw
-            # Loops through all child frames and deletes them
-            for child in card_display.winfo_children():
-                child.destroy()
+        # Initialize Outer Grid Layout
+        self.start_study_button.grid(column=0, row=1, pady=10)
+        self.return_button.grid(column=0, row=3, pady=10)
+        self.study_cards_label.grid(column=0, row=0, pady=5)
 
-        # Start study: reveal card term/definition
-        def start_study():
-            clear_inner_frame()
-            if len(card_nums) == len(cards_dict):
-                repeat_deck()
-            else:
-                term_tuple = generate_card(cards_dict)
-                while term_tuple[0] in card_nums:
-                    term_tuple = generate_card(cards_dict)
-                card_nums.add(term_tuple[0])
-                term_variable.set(f"{term_tuple[1]}")
-                show_term = tk.Label(card_display, textvariable=term_variable)
-                show_term.grid(column=0, row=0, columnspan=2)
-                show_def_button = tk.Button(
-                    card_display, text="Show Definition", command=lambda: show_definition(term_tuple))
-                show_def_button.grid(
-                    column=0, row=1, sticky="se", padx=10, pady=10)
-                show_next_button = tk.Button(card_display, text="Next Card",
-                                             command=start_study)
-                show_next_button.grid(
-                    column=1, row=1, sticky="sw", padx=10, pady=10)
+    def clear_inner_frame(self):
+        """
+        Loops through all child frames in the Inner Card Display Frame and deletes them, so only one term/definition appears at time.
+        Citation:
+            Date: 05/16/2022
+            Copied from: Codemy.com's "Delete Frame Children Widgets - Python Tkinter GUI Tutorial #50
+        Source URL: https://youtu.be/A6m7TmjuNzw
+        """
+        for child in self.card_display.winfo_children():
+            child.destroy()
 
-        # Asks User if they want to repeat their deck
-        def repeat_deck():
-            repeat = messagebox.askyesno(
-                title="Completed Deck", message="You have completed studying all your cards! Would you like to play again?")
-            if repeat:
-                card_nums.clear()
-                clear_inner_frame()
-                start_study()
-            else:
-                master.switch_frame(HomePage)
+    def show_card_display(self, master):
+        """
+        Initializes grid layout for elements in the Inner Card Display Frame and call study(), which prompts the reveal of the first card.
+        """
+        self.card_display.grid(column=0, row=2, padx=5, pady=5)
+        self.card_display.grid_propagate(False)
+        self.card_display.grid_rowconfigure(0, weight=2)
+        self.card_display.grid_rowconfigure(1, weight=1)
+        self.card_display.grid_columnconfigure(0, weight=1)
+        self.card_display.grid_columnconfigure(1, weight=1)
+        self.study(master)
 
-        # Show Definition
-        def show_definition(term_tuple):
-            clear_inner_frame()
-            def_variable.set(f"{term_tuple[2]}")
-            definition_label = tk.Label(
-                card_display, textvariable=def_variable)
-            definition_label.grid(column=0, row=0, columnspan=2)
-            show_term_button = tk.Button(
-                card_display, text="Show Term", command=lambda: show_term(term_tuple))
-            show_term_button.grid(
-                column=0, row=1, sticky="se", padx=10, pady=10)
-            show_next_button = tk.Button(card_display, text="Next Card",
-                                         command=start_study)
-            show_next_button.grid(
-                column=1, row=1,  sticky="sw", padx=10, pady=10)
+    def study(self, master):
+        """
+        Checks if user has already looped through the entire flashcard deck. If so, calls repeat_deck(). Else, displays a random flashcard from the deck, along with Show Definition and Next Card buttons that the user clicks on to iterate through the deck.
+        """
+        self.clear_inner_frame()
+        if len(self.cards_seen) == len(self.cards_dict):
+            self.repeat_deck(master)
+        else:
+            # get flashcard entry in form of (key, term, definition)
+            term_tuple = sqlite_db.generate_card(self.cards_dict)
+            # if flashcard has already been seen, generate a new one
+            while term_tuple[0] in self.cards_seen:
+                term_tuple = sqlite_db.generate_card(self.cards_dict)
 
-        # Show Term
-        def show_term(term_tuple):
-            clear_inner_frame()
-            term_variable.set(f"{term_tuple[1]}")
-            term_label = tk.Label(
-                card_display, textvariable=term_variable)
-            term_label.grid(column=0, row=0, columnspan=2)
-            show_def_button = tk.Button(
-                card_display, text="Show Definition", command=lambda: show_definition(term_tuple))
-            show_def_button.grid(
-                column=0, row=1, sticky="se", padx=10, pady=10)
-            show_next_button = tk.Button(card_display, text="Next Card",
-                                         command=start_study)
-            show_next_button.grid(
-                column=1, row=1,  sticky="sw", padx=10, pady=10)
+            # Once a new flashcard is found:
+            self.cards_seen.add(term_tuple[0])
+            self.term_var.set(f"{term_tuple[1]}")
 
-        # Reveal the Display Frame
-        def show_card_display():
-            card_display.grid(column=0, row=2, padx=5, pady=5)
-            card_display.grid_propagate(False)
-            card_display.grid_rowconfigure(0, weight=2)
-            card_display.grid_rowconfigure(1, weight=1)
-            card_display.grid_columnconfigure(0, weight=1)
-            card_display.grid_columnconfigure(1, weight=1)
-            start_study()
+            # Display Term
+            show_term = tk.Label(self.card_display, textvariable=self.term_var)
+            show_term.grid(column=0, row=0, columnspan=2)
 
-        # Start Studying Button
-        start_study_button = tk.Button(
-            self, text="Start Studying!", command=show_card_display)
-        start_study_button.grid(column=0, row=1, pady=10)
+            # Initialize and Display Show Definition Button
+            self.show_def_button(master, term_tuple)
+            # Show Next Button
+            self.show_next_button(master)
 
-        # Erase Study Button After It is Clicked
-        def forget_study_button(event):
-            start_study_button.forget()
-            return
-        start_study_button.bind("<ButtonRelease-1>", forget_study_button)
+    def show_def_button(self, master, term_tuple):
+        """
+        Initializes and Displays Show Definition Button.
+        """
+        show_def_button = tk.Button(
+            self.card_display, text="Show Definition", command=lambda: self.show_definition(master, term_tuple))
+        show_def_button.grid(
+            column=0, row=1, sticky="se", padx=10, pady=10)
 
-        # Return to Home Button
-        return_button = tk.Button(self, text="Home Page",
-                                  command=lambda: master.switch_frame(HomePage))
-        return_button.grid(column=0, row=3, pady=10)
+    def show_next_button(self, master):
+        """
+        Initializes and Displays Next Button. 
+        """
+        show_next_button = tk.Button(self.card_display, text="Next Card",
+                                     command=lambda: self.study(master))
+        show_next_button.grid(
+            column=1, row=1, sticky="sw", padx=10, pady=10)
+
+    def show_definition(self, master, term_tuple):
+        """
+        Called when user clicks the Show Definition button. Displays the definition of the randomly generated flashcard term.
+        """
+        self.clear_inner_frame()
+        self.def_var.set(f"{term_tuple[2]}")
+        definition_label = tk.Label(
+            self.card_display, textvariable=self.def_var)
+        definition_label.grid(column=0, row=0, columnspan=2)
+        show_term_button = tk.Button(
+            self.card_display, text="Show Term", command=lambda: self.show_term(master, term_tuple))
+        show_term_button.grid(
+            column=0, row=1, sticky="se", padx=10, pady=10)
+        self.show_next_button(master)
+
+    def show_term(self, master, term_tuple):
+        """
+        Called when user clicks the Show Term button. Displays the term associated with the displayed definition.
+        """
+        self.clear_inner_frame()
+        self.term_var.set(f"{term_tuple[1]}")
+        term_label = tk.Label(
+            self.card_display, textvariable=self.term_var)
+        term_label.grid(column=0, row=0, columnspan=2)
+        self.show_def_button(master, term_tuple)
+        self.show_next_button(master)
+
+    def repeat_deck(self, master):
+        """
+        Called if user has completed looping through their entire deck. Asks user if they want to repeat the deck. If so, clears cards_seen cache and restarts deck. Else, returns user to Home Page.
+        """
+        repeat = messagebox.askyesno(
+            title="Completed Deck", message="You have completed studying all your cards! Would you like to play again?")
+        if repeat:
+            self.cards_seen.clear()
+            self.clear_inner_frame()
+            self.study(master)
+        else:
+            master.switch_frame(HomePage)
+
+    def forget_study_button(self, event):
+        """
+        Erases Start Study Button after it has been clicked once.
+        """
+        self.start_study_button.forget()
 
 
 class ViewCardsPage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
 
-        # Page Title
-        view_cards_label = tk.Label(
+        # Initialize Title Label
+        self.view_cards_label = tk.Label(
             self, text="View Cards", font=("Arial", 25))
-        view_cards_label.pack(side="top", fill="x", pady=10)
 
         # Connect to database and get flashcards as dictionary
-        cards_dict = grab_cards()
+        self.cards_dict = sqlite_db.grab_cards()
 
-        # Create Inner Frame to Display Table
-        card_display = tk.Frame(self)
-        card_display.pack()
+        # Create card_display inner frame for Treeview Table
+        self.card_display = tk.Frame(self)
+        # Create crud_frame inner frame for CRUD operations fields
+        self.crud_frame = tk.LabelFrame(self, text="Currently Selected")
 
-        # Create a Table on Top of this Card_Display Frame
-        # Referenced: https://www.pythontutorial.net/tkinter/tkinter-treeview/
-        tree = ttk.Treeview(card_display, columns=(
+        # Create labels/fields for CRUD operations within the crud_frame
+        self.selected_term_label = tk.Label(
+            self.crud_frame, text="Selected Term")
+        self.selected_term_entry = tk.Entry(self.crud_frame, width=40)
+        self.selected_def_label = tk.Label(
+            self.crud_frame, text="Selected Definition")
+        self.selected_def_text = tk.Text(
+            self.crud_frame, height=5, width=60, borderwidth=1, relief="raised", font=("Arial", 12))
+
+        # Create Edit and Delete Card Buttons in crud_frame
+        self.edit_card_button = tk.Button(
+            self.crud_frame, text="Save Changes to Selected Card", command=self.edit_selected)
+        self.delete_card_button = tk.Button(
+            self.crud_frame, text="Delete Selected Card", command=self.delete_selected)
+
+        # Create Delete All and Home Buttons in outer frame
+        self.delete_all_button = tk.Button(
+            self, text="Delete ALL Cards", command=self.delete_all)
+        self.return_button = tk.Button(self, text="Home Page",
+                                       command=lambda: master.switch_frame(HomePage))
+
+        # Render outer frame and treeview
+        self.view_cards_label.pack(side="top", fill="x", pady=10)
+        self.card_display.pack()
+        self.tree = self.initialize_treeview()
+        self.fill_treeview()
+        self.crud_frame.pack(fill="both", expand="yes", padx=20, pady=20)
+        self.return_button.pack(pady=10)
+        self.delete_all_button.pack(pady=10)
+
+        # Render inner crud_frame grid display
+        self.crud_frame.grid_columnconfigure(0, weight=1)
+        self.crud_frame.grid_columnconfigure(1, weight=3)
+        self.crud_frame.grid_rowconfigure(0, weight=1)
+        self.crud_frame.grid_rowconfigure(1, weight=2)
+        self.crud_frame.grid_rowconfigure(2, weight=1)
+        self.selected_term_label.grid(
+            row=0, column=0, padx=10, pady=10, sticky="w")
+        self.selected_term_entry.grid(
+            row=0, column=1, padx=10, pady=10, sticky="w")
+        self.selected_def_label.grid(
+            row=1, column=0, padx=10, pady=10, sticky="w")
+        self.selected_def_text.grid(
+            row=1, column=1, padx=5, pady=5, sticky="w")
+        self.edit_card_button.grid(row=2, column=1, padx=5, pady=5)
+        self.delete_card_button.grid(row=2, column=0, padx=5, pady=5)
+
+    def initialize_treeview(self):
+        """
+        Creates a Treeview object "tree", which displays numbered cards terms and definitions within the card_display inner frame.
+        Citation:
+            Date: 05/16/2022
+            Based on: Pythontutorial.net "Tkinter Treeview" tutorial
+        Source URL: https://www.pythontutorial.net/tkinter/tkinter-treeview/
+        """
+        tree = ttk.Treeview(self.card_display, columns=(
             '#', 'Term', 'Definition'), show='headings', height=8, selectmode="browse")
-        tree.heading('#0', text='')
-        tree.heading('#', text='#', anchor='e')
-        tree.heading('Term', text='Term')
-        tree.heading('Definition', text="Definition")
-        tree.column('#0', width=0, minwidth=35)
-        tree.column('#', width=35, minwidth=35, anchor="e")
-        tree.column('Term', width=300, minwidth=35)
-        tree.column('Definition', width=300, minwidth=35)
-        tree.pack(side="left", fill="both", expand=1)
+        return tree
 
-        # Adding Data to Table
-        for i in range(len(cards_dict)):
-            tree.insert(parent="", index="end", iid=i,
-                        text="Terms", values=(i+1, cards_dict[i][0], cards_dict[i][1]))
+    def fill_treeview(self):
+        """
+        Fills tree object with headings/columns and flashcard data
+        """
+        # Create Headings and Columns
+        self.tree.heading('#0', text='')
+        self.tree.heading('#', text='#', anchor='e')
+        self.tree.heading('Term', text='Term')
+        self.tree.heading('Definition', text="Definition")
+        self.tree.column('#0', width=0, minwidth=35)
+        self.tree.column('#', width=35, minwidth=35, anchor="e")
+        self.tree.column('Term', width=300, minwidth=35)
+        self.tree.column('Definition', width=300, minwidth=35)
+        self.tree.pack(side="left", fill="both", expand=1)
 
-        # Creating Table Scrollbar
-        scrollbar = tk.Scrollbar(card_display)
+        # Adding table data from cards_dict
+        for i in range(len(self.cards_dict)):
+            self.tree.insert(parent="", index="end", iid=i,
+                             text="Terms", values=(i+1, self.cards_dict[i][0], self.cards_dict[i][1]))
+        self.treeview_scrollbar()
+        # Bind user's left click to the selected flashcard
+        self.tree.bind("<ButtonRelease-1>", self.fill_selected)
+
+    def treeview_scrollbar(self):
+        """
+        Creates vertical scrollbar if number of flashcards exceeds table height.
+        """
+        scrollbar = tk.Scrollbar(self.card_display)
         scrollbar.pack(side="right", fill="y")
-        tree.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=tree.yview)
+        self.tree.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.tree.yview)
 
-        # Edit/Delete Selected Card Fields
-        crud_frame = tk.LabelFrame(self, text="Currently Selected")
-        crud_frame.pack(fill="both", expand="yes", padx=20, pady=20)
-        crud_frame.grid_columnconfigure(0, weight=1)
-        crud_frame.grid_columnconfigure(1, weight=3)
-        crud_frame.grid_rowconfigure(0, weight=1)
-        crud_frame.grid_rowconfigure(1, weight=2)
-        crud_frame.grid_rowconfigure(2, weight=1)
+    def fill_selected(self, event):
+        """
+        When user clicks on flashcard within the Treeview display, selects that flashcard and populates the Selected Term Entry and Selected Def Text fields with that flashcard's information.
+        """
+        self.selected_term_entry.delete(0, "end")
+        self.selected_def_text.delete(1.0, "end")
+        selected_row = self.tree.item(self.tree.focus(), 'values')
+        self.selected_term_entry.insert(0, selected_row[1])
+        self.selected_def_text.insert("1.0", selected_row[2])
 
-        selected_term_label = tk.Label(crud_frame, text="Selected Term")
-        selected_term_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        selected_term_entry = tk.Entry(crud_frame, width=40)
-        selected_term_entry.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+    # Edit Card Function
+    def edit_selected(self):
+        """
+        Called when user clicks the Edit Selected Card button. Checks if updated term is a duplicate of another term. If so, shows error. Also checks if updated term or definition fields are blank. If so, shows error. Otherwise, the user's updated term/definition input is valid. Updates flashcard entry in dataase and gives confirmation.
+        """
+        selected_obj = self.tree.selection()[0]
+        selected_row = self.tree.item(self.tree.focus(), 'values')
+        selected_term = selected_row[1]
+        selected_def = selected_row[2]
+        new_term = self.selected_term_entry.get()
+        new_def = self.selected_def_text.get("1.0", "end-1c")
 
-        selected_def_label = tk.Label(crud_frame, text="Selected Definition")
-        selected_def_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
-        selected_def_text = tk.Text(
-            crud_frame, height=5, width=60, borderwidth=1, relief="raised", font=("Arial", 12))
-        selected_def_text.grid(row=1, column=1, padx=5, pady=5, sticky="w")
-
-        # Binding Single Click to Selected Treeview Object
-        def fill_selected(event):
-            selected_term_entry.delete(0, "end")
-            selected_def_text.delete(1.0, "end")
-            selected_row = tree.item(tree.focus(), 'values')
-            selected_term_entry.insert(0, selected_row[1])
-            selected_def_text.insert("1.0", selected_row[2])
-            return
-        tree.bind("<ButtonRelease-1>", fill_selected)
-
-        # Edit Card Function
-        def edit_selected():
-            selected_obj = tree.selection()[0]
-            selected_row = tree.item(tree.focus(), 'values')
-            selected_term = selected_row[1]
-            selected_def = selected_row[2]
-            new_term = selected_term_entry.get()
-
-            index = 0
-            repeat = False
-            for i in range(len(cards_dict)):
-                if new_term == cards_dict[i][0]:
-                    repeat = True
-                    break
-            if repeat:
-                repeated_term = messagebox.showwarning(
-                    title="Duplicate Term", message="Term already in deck. Cannot update.")
-
-            new_def = selected_def_text.get("1.0", "end")
-            update_term(selected_term, new_term)
-            update_def(selected_def, new_def)
+        repeat = 0
+        for i in range(len(self.cards_dict)):
+            if new_term == self.cards_dict[i][0]:
+                repeat += 1
+        if repeat > 1:
+            repeated_term = messagebox.showerror(
+                title="Duplicate Term", message="Term already in deck. Cannot update.")
+        elif not new_term:
+            blank_field = messagebox.showerror(
+                title="Blank Field", message="Flashcard terms cannot be blank.")
+        elif len(new_def) == 1:
+            blank_field = messagebox.showerror(
+                title="Blank Field", message="Flashcard entries cannot be blank.")
+        else:
+            sqlite_db.update_term(selected_term, new_term)
+            sqlite_db.update_def(selected_def, new_def)
             updated_selected_confirmation = messagebox.showinfo(
                 title="Confirmation", message="Selected card updated.")
-            tree.item(selected_obj, text="", values=(
+            self.tree.item(selected_obj, text="", values=(
                 selected_row[0], new_term, new_def))
 
-        # Edit Button
-        edit_card_button = tk.Button(
-            crud_frame, text="Save Changes to Selected Card", command=edit_selected)
-        edit_card_button.grid(row=2, column=1, padx=5, pady=5)
+    # Delete Card Function
+    def delete_selected(self):
+        """
+        Called when user clicks the Delete Selected Card button. Warns user that delete_selected() cannot be reversed. If user continues, permanently deletes the selected card and gives confirmation. Else, dismisses warning and returns user to main View Flashcards page.
+        """
+        selected_obj = self.tree.selection()[0]
+        selected_row = self.tree.item(self.tree.focus(), 'values')
+        selected_term = selected_row[1]
+        delete_selected_warning = messagebox.askyesno(
+            title="Warning", message="You are about to delete the selected flashcard. This cannot be undone. Do you still want to proceed?")
+        if delete_selected_warning:
+            sqlite_db.delete_card(selected_term)
+            self.tree.delete(selected_obj)
+            delete_selected_confirmation = messagebox.showinfo(
+                title="Confirmation", message="Selected card deleted.")
+            self.selected_term_entry.delete(0, "end")
+            self.selected_def_text.delete("1.0", "end")
 
-        # Delete Card Function
-        def delete_selected():
-            selected_obj = tree.selection()[0]
-            selected_row = tree.item(tree.focus(), 'values')
-            selected_term = selected_row[1]
-            delete_selected_warning = messagebox.askyesno(
-                title="Warning", message="You are about to delete the selected flashcard. This cannot be undone. Do you still want to proceed?")
-            if delete_selected_warning:
-                delete_card(selected_term)
-                tree.delete(selected_obj)
-                delete_selected_confirmation = messagebox.showinfo(
-                    title="Confirmation", message="Selected card deleted.")
-                selected_term_entry.delete(0, "end")
-                selected_def_text.delete("1.0", "end")
-        # Delete Card Button
-        delete_card_button = tk.Button(
-            crud_frame, text="Delete Selected Card", command=delete_selected)
-        delete_card_button.grid(row=2, column=0, padx=5, pady=5)
-
-        # Delete All Function
-        def delete_all():
-            delete_all_warning = messagebox.askyesno(
-                title="Warning", message="You are about to delete ALL of your flashcards. This cannot be undone. Do you still want to proceed?")
-            if delete_all_warning:
-                selected_term_entry.delete(0, "end")
-                selected_def_text.delete("1.0", "end")
-                for line in tree.get_children():
-                    tree.delete(line)
-                delete_all_cards()
-                deleted = messagebox.showinfo(
-                    title="Confirmation", message="Your flashcards have been deleted.")
-
-        # Delete All Button
-        delete_all_button = tk.Button(
-            self, text="Delete ALL Cards", command=delete_all)
-        delete_all_button.pack(pady=10)
-
-        # Return to Home Button
-        return_button = tk.Button(self, text="Home Page",
-                                  command=lambda: master.switch_frame(HomePage))
-        return_button.pack(pady=10)
+    # Delete All Function
+    def delete_all(self):
+        """
+        Called when user clicks the Delete All button. Gives user a warning that delete_all() cannot be reversed. If user continues, permanently deletes user's entire flashcard deck and gives confirmation. Else, dismisses warning and returns user to main View Flashcards page.
+        """
+        delete_all_warning = messagebox.askyesno(
+            title="Warning", message="You are about to delete ALL of your flashcards. This cannot be undone. Do you still want to proceed?")
+        if delete_all_warning:
+            self.selected_term_entry.delete(0, "end")
+            self.selected_def_text.delete("1.0", "end")
+            for line in self.tree.get_children():
+                self.tree.delete(line)
+            sqlite_db.delete_all_cards()
+            deleted = messagebox.showinfo(
+                title="Confirmation", message="Your flashcards have been deleted.")
 
 
 if __name__ == "__main__":
