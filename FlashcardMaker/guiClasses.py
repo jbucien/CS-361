@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 import sqlite_db
+from time import sleep
+import os.path
 
 # Reference for using classes to switch frames in Tkinter: https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
 
@@ -107,7 +109,25 @@ class CreateCardsPage(tk.Frame):
         Writes user's input term to watchMe.txt. Kyle's microservice reads the text file, saves the term, and scrapes the Oxford Learner Dictionary for that term's first definition. His service then writes the definition to the text file. generate_def() reads the definition and outputs the definition to the Flashcard Definition field.
         Note: Kyle's microservice must be running in a separate process.
         """
-        pass
+        term = self.term_entry.get()
+        if not term:
+            messagebox.showerror(
+                title="Blank Term",
+                message=f"Term field cannot be blank.")
+            return
+        else:
+            with open("../../361microservice/watchMe.txt", "w") as file:
+                file.write(term)
+            sleep(2)
+            if os.path.exists(f"../../361microservice/{term}.txt"):
+                with open(f"../../361microservice/{term}.txt", "r") as file1:
+                    definition = file1.read()
+
+                self.def_text.insert('1.0', definition)
+            else:
+                messagebox.showerror(
+                    title="Could Not Generate Definition",
+                    message=f"Cannot find definition for term: {term}")
 
     def show_generate_def_label(self, event):
         """
@@ -344,13 +364,13 @@ class ViewCardsPage(tk.Frame):
                                        command=lambda: master.switch_frame(HomePage))
 
         # Render outer frame and treeview
-        self.view_cards_label.pack(side="top", fill="x", pady=10)
-        self.card_display.pack()
+        self.view_cards_label.grid(column=0, row=0, pady=10)
+        self.card_display.grid(column=0, row=1, pady=10)
         self.tree = self.initialize_treeview()
         self.fill_treeview()
-        self.crud_frame.pack(fill="both", expand="yes", padx=20, pady=20)
-        self.return_button.pack(pady=10)
-        self.delete_all_button.pack(pady=10)
+        self.crud_frame.grid(column=0, row=2, pady=5)
+        self.return_button.grid(column=0, row=4, pady=5)
+        self.delete_all_button.grid(column=0, row=5, pady=5)
 
         # Render inner crud_frame grid display
         self.crud_frame.grid_columnconfigure(0, weight=1)
@@ -465,14 +485,18 @@ class ViewCardsPage(tk.Frame):
         selected_row = self.tree.item(self.tree.focus(), 'values')
         selected_term = selected_row[1]
         delete_selected_warning = messagebox.askyesno(
-            title="Warning", message="You are about to delete the selected flashcard. This cannot be undone. Do you still want to proceed?")
+            title="Warning", message="Deleting a flashcard cannot be undone. Do you still want to proceed?")
         if delete_selected_warning:
             sqlite_db.delete_card(selected_term)
             self.tree.delete(selected_obj)
-            delete_selected_confirmation = messagebox.showinfo(
-                title="Confirmation", message="Selected card deleted.")
             self.selected_term_entry.delete(0, "end")
             self.selected_def_text.delete("1.0", "end")
+            deleted_confirmation = tk.Label(
+                self, text="Card Deleted", fg="#32CD32")
+            deleted_confirmation.grid(
+                column=0, row=3, pady=3)
+            deleted_confirmation.after(
+                4000, lambda: deleted_confirmation.destroy())
 
     # Delete All Function
     def delete_all(self):
