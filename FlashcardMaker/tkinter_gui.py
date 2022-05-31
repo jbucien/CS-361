@@ -4,7 +4,17 @@ import sqlite_db
 from time import sleep
 import os.path
 
-# Reference for using classes to switch frames in Tkinter: https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
+
+# ------- Citations for tkinter_classes.py -------------
+# Description: Using classes to switch frames in Tkinter
+# Source URL: https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
+
+# Description: Deleting child widgets from a Tkinter frame       
+# Source URL: https://youtu.be/A6m7TmjuNzw
+
+# Description: Creating and working with Tkinter Treeview objects
+# Source URL: https://www.pythontutorial.net/tkinter/tkinter-treeview/
+
 
 
 class FlashcardApp(tk.Tk):
@@ -214,10 +224,6 @@ class StudyCardsPage(tk.Frame):
     def clear_inner_frame(self):
         """
         Loops through all child frames in the Inner Card Display Frame and deletes them, so only one term/definition appears at time.
-        Citation:
-            Date: 05/16/2022
-            Copied from: Codemy.com's "Delete Frame Children Widgets - Python Tkinter GUI Tutorial #50
-        Source URL: https://youtu.be/A6m7TmjuNzw
         """
         for child in self.card_display.winfo_children():
             child.destroy()
@@ -392,10 +398,6 @@ class ViewCardsPage(tk.Frame):
     def initialize_treeview(self):
         """
         Creates a Treeview object "tree", which displays numbered cards terms and definitions within the card_display inner frame.
-        Citation:
-            Date: 05/16/2022
-            Based on: Pythontutorial.net "Tkinter Treeview" tutorial
-        Source URL: https://www.pythontutorial.net/tkinter/tkinter-treeview/
         """
         tree = ttk.Treeview(self.card_display, columns=(
             '#', 'Term', 'Definition'), show='headings', height=8, selectmode="browse")
@@ -443,7 +445,6 @@ class ViewCardsPage(tk.Frame):
         self.selected_term_entry.insert(0, selected_row[1])
         self.selected_def_text.insert("1.0", selected_row[2])
 
-    # Edit Card Function
     def edit_selected(self):
         """
         Called when user clicks the Edit Selected Card button. Checks if updated term is a duplicate of another term. If so, shows error. Also checks if updated term or definition fields are blank. If so, shows error. Otherwise, the user's updated term/definition input is valid. Updates flashcard entry in dataase and gives confirmation.
@@ -476,7 +477,6 @@ class ViewCardsPage(tk.Frame):
             self.tree.item(selected_obj, text="", values=(
                 selected_row[0], new_term, new_def))
 
-    # Delete Card Function
     def delete_selected(self):
         """
         Called when user clicks the Delete Selected Card button. Warns user that delete_selected() cannot be reversed. If user continues, permanently deletes the selected card and gives confirmation. Else, dismisses warning and returns user to main View Flashcards page.
@@ -498,7 +498,6 @@ class ViewCardsPage(tk.Frame):
             deleted_confirmation.after(
                 4000, lambda: deleted_confirmation.destroy())
 
-    # Delete All Function
     def delete_all(self):
         """
         Called when user clicks the Delete All button. Gives user a warning that delete_all() cannot be reversed. If user continues, permanently deletes user's entire flashcard deck and gives confirmation. Else, dismisses warning and returns user to main View Flashcards page.

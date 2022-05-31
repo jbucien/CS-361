@@ -23,8 +23,8 @@ class Card:
 
 def create_card_manual():
     """Prompts User for Card Term and Definition Input"""
-    user_term = input('')
-    user_def = input('')
+    user_term = input("")
+    user_def = input("")
     if user_term is not None and user_def is not None:
         NewCard = Card(user_term, user_def)
     else:

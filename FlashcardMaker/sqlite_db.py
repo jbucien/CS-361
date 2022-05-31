@@ -1,10 +1,10 @@
 import sqlite3
+import csv
 from flashcard import Card
 from random import randint
 
 # Reference: https://www.sqlitetutorial.net/sqlite-python/insert/
 # https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
-# '_flashcard.db'
 
 
 def create_card_manual(user_term, user_def):
@@ -85,7 +85,8 @@ def check_deck_exists():
 
 def grab_cards():
     """
-    Converts current flashcard deck into a dictionary.
+    Converts current flashcard deck into a dictionary of key, value pairs.
+    Each key is a flashcard term whose value is the its corresponding definition.
     """
     # Open database and create cursor
     conn = sqlite3.connect("_flashcard.db")
@@ -175,6 +176,15 @@ def delete_all_cards():
 
     # Close connection
     conn.close()
+
+def import_cards():
+    """Imports a CSV file into the _flashcard.db database"""
+    pass
+
+def export_cards(file_name):
+    """Exports flashcards as a CSV file"""
+    pass
+
 
 
 if __name__ == "__main__":
