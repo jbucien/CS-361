@@ -1,27 +1,33 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, filedialog
+from PIL import ImageTk, Image
 import sqlite_db
 from time import sleep
 import os.path
 
 
-# ------- Citations for tkinter_classes.py -------------
+# ------- Citations for tkinter_gui.py -------------
 # Description: Using classes to switch frames in Tkinter
 # Source URL: https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
 
-# Description: Deleting child widgets from a Tkinter frame       
+# Description: Deleting child widgets from a Tkinter frame
 # Source URL: https://youtu.be/A6m7TmjuNzw
 
 # Description: Creating and working with Tkinter Treeview objects
 # Source URL: https://www.pythontutorial.net/tkinter/tkinter-treeview/
 
+# Description: Opening File Dialog Boxes with Tkinter
+# Source URL: https://www.youtube.com/watch?v=Aim_7fC-inw&t=358s
+
+# Description: Place Images in Tkinter Frame
+# Source URL: https://www.tutorialspoint.com/how-to-place-an-image-into-a-frame-in-tkinter
 
 
 class FlashcardApp(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.title("Flashcard Maker")
-        self.geometry("700x550")
+        self.geometry("800x550")
         self._frame = None
         self.switch_frame(HomePage)
 
@@ -42,20 +48,25 @@ class HomePage(tk.Frame):
         self.welcome_label = tk.Label(
             self, text="Welcome!", font=("Arial", 25), pady=10)
 
-        # Initialize main 3 buttons
-        self.create_cards_button = tk.Button(self, text="Create Flashcards",
-                                             command=lambda: master.switch_frame(CreateCardsPage))
-
-        self.study_cards_button = tk.Button(self, text="Study Flashcards",
-                                            command=lambda: self.check_deck(master, StudyCardsPage))
+        # Initialize main 5 buttons
+        self.create_cards_button = tk.Button(
+            self, text="Create Flashcards", command=lambda: master.switch_frame(CreateCardsPage))
+        self.study_cards_button = tk.Button(
+            self, text="Study Flashcards", command=lambda: self.check_deck(master, StudyCardsPage))
         self.view_cards_button = tk.Button(
             self, text="View Flashcards", command=lambda: self.check_deck(master, ViewCardsPage))
+        self.import_cards_button = tk.Button(
+            self, text="Import Flashcards", command=lambda: master.switch_frame(ImportCardsPage))
+        self.export_cards_button = tk.Button(
+            self, text="Export Flashcards", command=lambda: self.check_deck(master, ExportCardsPage))
 
         # Initialize Layout of Grid
         self.welcome_label.grid(column=0, row=0)
         self.create_cards_button.grid(column=0, row=1, padx=10, pady=5)
         self.study_cards_button.grid(column=0, row=2, padx=10, pady=5)
         self.view_cards_button.grid(column=0, row=3, padx=10, pady=5)
+        self.import_cards_button.grid(column=0, row=4, padx=10, pady=5)
+        self.export_cards_button.grid(column=0, row=5, padx=10, pady=5)
 
     def check_deck(self, master, page):
         """
@@ -278,7 +289,7 @@ class StudyCardsPage(tk.Frame):
 
     def show_next_button(self, master):
         """
-        Initializes and Displays Next Button. 
+        Initializes and Displays Next Button.
         """
         show_next_button = tk.Button(self.card_display, text="Next Card",
                                      command=lambda: self.study(master))
@@ -512,6 +523,102 @@ class ViewCardsPage(tk.Frame):
             sqlite_db.delete_all_cards()
             deleted = messagebox.showinfo(
                 title="Confirmation", message="Your flashcards have been deleted.")
+
+
+class ImportCardsPage(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+
+        # Initialize Import Cards Title Label
+        self.import_cards_label = tk.Label(
+            self, text="Import Cards from a CSV File", font=("Arial", 25), pady=10)
+
+        # Initialize Instructions
+        self.import_cards_instructions = tk.Label(
+            self, text="Click on \"Import Now\" to open a file browser. Select a valid .csv file and click \"Open\" to import.", pady=10)
+        self.valid_csv = tk.Label(
+            self, text="Valid .csv files consist of two comma-separated columns. \n The first column is the flashcard term. \n The second column is the flashcard definition. \n Do not add title headers, i.e. \"Term\", \"Definition\"."
+        )
+
+        # Initialize Photo Samples
+        self.image_frame1 = tk.LabelFrame(
+            self, text="Example 1: Format of text .csv file", font=("Arial", 15), width=400, height=200)
+        self.sample_plaintext = ImageTk.PhotoImage(
+            Image.open("plaintextcsv.png"))
+        self.image1 = tk.Label(self.image_frame1, image=self.sample_plaintext)
+        self.image_frame2 = tk.LabelFrame(
+            self, text="Example 2: Format of spreadsheet .csv file", font=("Arial", 15), width=400, height=200)
+        self.sample_spreadsheet = ImageTk.PhotoImage(
+            Image.open("spreadsheetcsv.png"))
+        self.image2 = tk.Label(
+            self.image_frame2, image=self.sample_spreadsheet)
+
+        # Initialize Buttons
+        self.import_now_button = tk.Button(
+            self, text="Import Cards Now", command=self.import_file_dialog)
+        self.return_button = tk.Button(
+            self, text="Home Page", command=lambda: master.switch_frame(HomePage))
+
+        # Render Layout of Grid
+        self.import_cards_label.grid(column=0, row=1, padx=10, pady=5)
+        self.import_cards_instructions.grid(column=0, row=2, padx=10, pady=5)
+        self.valid_csv.grid(column=0, row=3, padx=10, pady=5)
+        self.image_frame1.grid(column=0, row=4, padx=10, pady=5)
+        self.image_frame2.grid(column=0, row=5, padx=10, pady=5)
+        self.import_now_button.grid(column=0, row=6, padx=10, pady=5)
+        self.return_button.grid(column=0, row=7, padx=10, pady=5)
+        self.image1.pack()
+        self.image2.pack()
+
+    def import_file_dialog(self):
+        self.filename = filedialog.askopenfilename(
+            initialdir="/CS-361/FlashcardMaker", title="Select a CSV File", filetypes=((".csv files", "*.csv"),))
+        imported = sqlite_db.import_cards(self.filename)
+        if imported == "successful":
+            added = messagebox.askyesno(
+                title="Confirmation", message="Your flashcards have been added. Go to ViewCards Page?")
+            if added:
+                self.master.switch_frame(ViewCardsPage)
+
+        elif imported == "invalid":
+            added = messagebox.showerror(
+                title="Import Error", message="Your flashcards could not be imported. Invalid .csv format.")
+        else:
+            added = messagebox.showerror(
+                title="Import Error", message=f"Your flashcards could not be imported. {imported} is a duplicate term.")
+
+
+class ExportCardsPage(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+
+        # Initialize Export Cards Title Label
+        self.export_cards_label = tk.Label(
+            self, text="Export Cards to a CSV File", font=("Arial", 25), pady=10)
+
+        # Initialize Instructions
+        self.export_cards_instructions = tk.Label(
+            self, text="Click on \"Export Now\" to open the file browser. \n Navigate to desired file destination. \n Enter your desired filename and click \"Save\" to export.", pady=10)
+
+        # Initialize Buttons
+        self.export_now_button = tk.Button(
+            self, text="Export Cards Now", command=self.export_file_dialog)
+        self.return_button = tk.Button(self, text="Home Page",
+                                       command=lambda: master.switch_frame(HomePage))
+
+        # Render Layout of Grid
+        self.export_cards_label.grid(column=0, row=1, padx=10, pady=5)
+        self.export_cards_instructions.grid(column=0, row=2, padx=10, pady=5)
+        self.export_now_button.grid(column=0, row=3, padx=10, pady=5)
+        self.return_button.grid(column=0, row=4, padx=10, pady=5)
+
+    def export_file_dialog(self):
+        self.filename = filedialog.asksaveasfilename(
+            initialdir="/CS-361/FlashcardMaker", title="Save as a CSV File", filetypes=((".csv files", "*.csv"),))
+        sqlite_db.export_cards(self.filename)
+        print(self.filename)
+        added = messagebox.showinfo(
+            title="Confirmation", message=f"Your flashcards have been exported as {self.filename}. ")
 
 
 if __name__ == "__main__":

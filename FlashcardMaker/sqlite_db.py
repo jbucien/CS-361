@@ -1,5 +1,6 @@
 import sqlite3
 import csv
+import os
 from flashcard import Card
 from random import randint
 
@@ -177,15 +178,40 @@ def delete_all_cards():
     # Close connection
     conn.close()
 
-def import_cards():
+
+def import_cards(file_name="sample.csv"):
     """Imports a CSV file into the _flashcard.db database"""
-    pass
+    cards_dict = grab_cards()
+    with open(file_name, encoding="UTF-8-sig", mode="r") as cards_csv:
+        cards_reader = csv.reader(
+            cards_csv, skipinitialspace=True, delimiter=",")
+        try:
+            check_columns = len(next(cards_reader))
+        except StopIteration as e:
+            return "invalid"
+        if check_columns != 2:
+            return "invalid"
+        cards_csv.seek(0)
+        i = 0
+        for card in cards_reader:
+            if card[0] == cards_dict[i][0]:
+                return cards_dict[i][0]
+            i += 1
+        for card in cards_reader:
+            new_card = create_card_manual(card[0], card[1])
+            added = add_card(new_card)
+    return "successful"
 
-def export_cards(file_name):
-    """Exports flashcards as a CSV file"""
-    pass
 
+def export_cards(file_name="cards.csv"):
+    """Exports existing flashcards as a CSV file"""
+    with open(file_name, encoding="UTF-8-sig", mode="w") as cards_csv:
+        cards_dict = grab_cards()
+        cards_writer = csv.writer(
+            cards_csv, delimiter=",", skipinitialspace=True, quotechar="'")
+        for card in cards_dict.values():
+            cards_writer.writerow([card[0], card[1]])
 
 
 if __name__ == "__main__":
-    print(grab_cards())
+    print(import_cards("cards.csv"))
