@@ -4,8 +4,9 @@ import os
 from flashcard import Card
 from random import randint
 
-# Reference: https://www.sqlitetutorial.net/sqlite-python/insert/
-# https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter
+# ------- Citations for sqlite_db.py -------------
+# Description: CRUD with SQLite and Python
+# Source URL: https://www.sqlitetutorial.net/sqlite-python/insert/
 
 
 def create_card_manual(user_term, user_def):
@@ -28,11 +29,13 @@ def add_card(new_card):
     c = conn.cursor()
 
     # Create cards table if it doesn't already exist
-    c.execute("""CREATE TABLE IF NOT EXISTS cards (
+    c.execute(
+        """CREATE TABLE IF NOT EXISTS cards (
             card_id INTEGER PRIMARY KEY,
             card_term TEXT NOT NULL,
             card_def TEXT NOT NULL)
-            """)
+            """
+    )
 
     # Check to make sure term isn't repeated
     c.execute("SELECT card_term FROM cards WHERE card_term = ?",
@@ -44,7 +47,8 @@ def add_card(new_card):
         # Insert Row into flashcard table
         c.execute(
             "INSERT INTO cards (card_term, card_def) VALUES (?, ?)",
-            (new_card.get_term(), new_card.get_definition()))
+            (new_card.get_term(), new_card.get_definition()),
+        )
         conn.commit()
         added = True
     # Commits the current transaction
@@ -76,7 +80,8 @@ def check_deck_exists():
 
     # Check if table 'cards' exists
     c.execute(
-        """SELECT count(name) FROM sqlite_master WHERE type='table' AND name='cards'""")
+        """SELECT count(name) FROM sqlite_master WHERE type='table' AND name='cards'"""
+    )
 
     if c.fetchone()[0] == 1:
         exist = True
@@ -106,7 +111,7 @@ def grab_cards():
 
 
 def generate_card(flashcard_deck):
-    key = randint(0, len(flashcard_deck)-1)
+    key = randint(0, len(flashcard_deck) - 1)
     term = flashcard_deck[key][0]
     definition = flashcard_deck[key][1]
     return (key, term, definition)
@@ -123,11 +128,13 @@ def update_term(old_term, new_term):
     old_card_id = old_card_id[0]
 
     # Execute Edit
-    c.execute("UPDATE cards SET card_term = ? WHERE card_id = ?",
-              (new_term, old_card_id))
+    c.execute(
+        "UPDATE cards SET card_term = ? WHERE card_id = ?", (
+            new_term, old_card_id)
+    )
     conn.commit()
     conn.close()
-    print('Card updated.')
+    print("Card updated.")
 
 
 def update_def(old_def, new_def):
@@ -145,7 +152,7 @@ def update_def(old_def, new_def):
               (new_def, old_card_id))
     conn.commit()
     conn.close()
-    print('Card definition updated.')
+    print("Card definition updated.")
 
 
 def delete_card(acard_term):
@@ -159,11 +166,10 @@ def delete_card(acard_term):
     old_card_id = old_card_id[0]
 
     # Execute Delete
-    c.execute("DELETE FROM cards WHERE card_id = ?",
-              (old_card_id,))
+    c.execute("DELETE FROM cards WHERE card_id = ?", (old_card_id,))
     conn.commit()
     conn.close()
-    print('Card deleted.')
+    print("Card deleted.")
 
 
 def delete_all_cards():
@@ -208,10 +214,7 @@ def export_cards(file_name="cards.csv"):
     with open(file_name, encoding="UTF-8-sig", mode="w") as cards_csv:
         cards_dict = grab_cards()
         cards_writer = csv.writer(
-            cards_csv, delimiter=",", skipinitialspace=True, quotechar="'")
+            cards_csv, delimiter=",", skipinitialspace=True, quotechar="'"
+        )
         for card in cards_dict.values():
             cards_writer.writerow([card[0], card[1]])
-
-
-if __name__ == "__main__":
-    print(import_cards("cards.csv"))
