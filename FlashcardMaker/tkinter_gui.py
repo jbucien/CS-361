@@ -5,7 +5,6 @@ import sqlite_db
 from time import sleep
 import os.path
 
-
 # ------- Citations for tkinter_gui.py -------------
 # Description: Using classes to switch frames in Tkinter
 # Source URL: https://www.semicolonworld.com/question/42826/switch-between-two-frames-in-tkinter

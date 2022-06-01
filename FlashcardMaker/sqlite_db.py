@@ -198,11 +198,12 @@ def import_cards(file_name="sample.csv"):
         if check_columns != 2:
             return "invalid"
         cards_csv.seek(0)
-        i = 0
+        cards_tuple = cards_dict.values()
         for card in cards_reader:
-            if card[0] == cards_dict[i][0]:
-                return cards_dict[i][0]
-            i += 1
+            for term in cards_tuple:
+                if card[0] == term[0]:
+                    return term[0]
+        cards_csv.seek(0)
         for card in cards_reader:
             new_card = create_card_manual(card[0], card[1])
             added = add_card(new_card)
