@@ -31,6 +31,20 @@ class FlashcardApp(tk.Tk):
         self._frame = None
         self.switch_frame(HomePage)
 
+        # Create Application Styles
+        self.style = ttk.Style()
+        self.style.theme_use('alt')
+        self.style.configure("Custom.TButton", foreground="black",
+                             background="#b2cff7",
+                             width=20,
+                             padding=12,
+                             font="Arial 16 bold")
+        self.style.map("Custom.TButton",
+                       foreground=[('pressed', 'blue'), ('active', 'blue')],
+                       background=[('pressed', '!disabled', "#5096f2"),
+                                   ('active', '#dce9fa')]
+                       )
+
     def switch_frame(self, frame_class):
         """Destroys current frame and replaces it with a new one."""
         new_frame = frame_class(self)
@@ -46,27 +60,27 @@ class HomePage(tk.Frame):
 
         # Initialize Welcome title
         self.welcome_label = tk.Label(
-            self, text="Welcome!", font=("Arial", 25), pady=10)
+            self, text="Welcome!", font=("Arial", 30), pady=10)
 
         # Initialize main 5 buttons
-        self.create_cards_button = tk.Button(
-            self, text="Create Flashcards", command=lambda: master.switch_frame(CreateCardsPage))
-        self.study_cards_button = tk.Button(
-            self, text="Study Flashcards", command=lambda: self.check_deck(master, StudyCardsPage))
-        self.view_cards_button = tk.Button(
-            self, text="View Flashcards", command=lambda: self.check_deck(master, ViewCardsPage))
-        self.import_cards_button = tk.Button(
-            self, text="Import Flashcards", command=lambda: master.switch_frame(ImportCardsPage))
-        self.export_cards_button = tk.Button(
-            self, text="Export Flashcards", command=lambda: self.check_deck(master, ExportCardsPage))
+        self.create_cards_button = ttk.Button(
+            self, text="Create Flashcards", style="Custom.TButton", command=lambda: master.switch_frame(CreateCardsPage))
+        self.study_cards_button = ttk.Button(
+            self, text="Study Flashcards", style="Custom.TButton", command=lambda: self.check_deck(master, StudyCardsPage))
+        self.view_cards_button = ttk.Button(
+            self, text="View Flashcards", style="Custom.TButton", command=lambda: self.check_deck(master, ViewCardsPage))
+        self.import_cards_button = ttk.Button(
+            self, text="Import Flashcards", style="Custom.TButton", command=lambda: master.switch_frame(ImportCardsPage))
+        self.export_cards_button = ttk.Button(
+            self, text="Export Flashcards", style="Custom.TButton", command=lambda: self.check_deck(master, ExportCardsPage))
 
         # Initialize Layout of Grid
-        self.welcome_label.grid(column=0, row=0)
-        self.create_cards_button.grid(column=0, row=1, padx=10, pady=5)
-        self.study_cards_button.grid(column=0, row=2, padx=10, pady=5)
-        self.view_cards_button.grid(column=0, row=3, padx=10, pady=5)
-        self.import_cards_button.grid(column=0, row=4, padx=10, pady=5)
-        self.export_cards_button.grid(column=0, row=5, padx=10, pady=5)
+        self.welcome_label.grid(column=0, row=0, columnspan=2)
+        self.create_cards_button.grid(column=0, row=1, padx=10, pady=10)
+        self.study_cards_button.grid(column=0, row=2, padx=10, pady=10)
+        self.view_cards_button.grid(column=0, row=3, padx=10, pady=10)
+        self.import_cards_button.grid(column=1, row=1, padx=10, pady=10)
+        self.export_cards_button.grid(column=1, row=2, padx=10, pady=10)
 
     def check_deck(self, master, page):
         """
