@@ -275,11 +275,11 @@ class CreateCardsPage(tk.Frame):
             )
             return
         else:
-            with open("../Definition-Scraper/watchMe.txt", "w") as file:
+            with open("./Definition-Scraper/watchMe.txt", "w") as file:
                 file.write(term)
             sleep(2)
-            if os.path.exists(f"../Definition-Scraper/{term}.txt"):
-                with open(f"../Definition-Scraper/{term}.txt", "r") as file1:
+            if os.path.exists(f"./Definition-Scraper/{term}.txt"):
+                with open(f"./Definition-Scraper/{term}.txt", "r") as file1:
                     definition = file1.read()
 
                 self.def_text.insert("1.0", definition)
